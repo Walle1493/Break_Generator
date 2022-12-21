@@ -70,13 +70,11 @@ class Seq2SeqDataset(Dataset):
             raise ValueError("Tokenizer not recognized")
         
         if isinstance(self.tokenizer, T5Tokenizer):
-            # target_inputs = self.tokenizer(source_line+' '+tgt_line)
-            target_inputs = self.tokenizer(self.tokenizer.pad_token + ' ' + tgt_line)
-            # target_inputs = self.tokenizer(tgt_line)
+            # target_inputs = self.tokenizer(self.tokenizer.pad_token + ' ' + tgt_line)
+            target_inputs = self.tokenizer(tgt_line)
         else:
-            # target_inputs = self.tokenizer(source_line+' '+tgt_line, add_prefix_space=True)
-            target_inputs = self.tokenizer(self.tokenizer.eos_token + ' ' + tgt_line, add_prefix_space=True)
-            # target_inputs = self.tokenizer(tgt_line, add_prefix_space=True)
+            # target_inputs = self.tokenizer(self.tokenizer.eos_token + ' ' + tgt_line, add_prefix_space=True)
+            target_inputs = self.tokenizer(tgt_line, add_prefix_space=True)
 
         source_ids = source_inputs["input_ids"]
         target_ids = target_inputs["input_ids"]
