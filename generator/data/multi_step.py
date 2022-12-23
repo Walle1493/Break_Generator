@@ -23,10 +23,12 @@ def multi_step(src_path):
                 target = decomp["question"]
             elif i < len(decompositions) - 1:
                 # BART: </s> for sep and eos
-                source += " </s> " + target + " " + decompositions[i-1]["answer"]
+                # source += " </s> " + target + " " + decompositions[i-1]["answer"]
+                source += " ; " + target + " " + decompositions[i-1]["answer"]
                 target = decomp["question"]
             else:
-                source += " </s> " + target + " " + decompositions[i-1]["answer"]
+                # source += " </s> " + target + " " + decompositions[i-1]["answer"]
+                source += " ; " + target + " " + decompositions[i-1]["answer"]
                 target = decomp["question"] + " </s> </s>"
             if "#" in target:
                 pos = -1

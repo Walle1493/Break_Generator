@@ -7,11 +7,24 @@
 #     --max_tgt_len 100\
 #     --seed 42 \
 
-CUDA_VISIBLE_DEVICES=1 python ../evaluate.py \
+# # Seq2seq generator
+# CUDA_VISIBLE_DEVICES=3 python ../evaluate.py \
+#     --model_type=bart \
+#     --tokenizer_name=facebook/bart-large \
+#     --model_name_or_path=/home/mxdong/Model/Seq2seq/MuSiQue/Bart-Large \
+#     --data_dir=/home/mxdong/Data/MuSiQue/format_data/dev.json \
+#     --switch=seq2 \
+#     --max_src_len 70\
+#     --max_tgt_len 100\
+#     --seed 42 \
+
+# Multi-step generator
+CUDA_VISIBLE_DEVICES=3 python ../evaluate.py \
     --model_type=bart \
     --tokenizer_name=facebook/bart-large \
-    --model_name_or_path=/home/mxdong/Model/Decomposition/MuSiQue/Bart-Large \
+    --model_name_or_path=/home/mxdong/Model/MultiStep/MuSiQue/Bart-Large \
     --data_dir=/home/mxdong/Data/MuSiQue/format_data/dev.json \
-    --max_src_len 70\
-    --max_tgt_len 100\
+    --switch=multi \
+    --max_src_len 160\
+    --max_tgt_len 48\
     --seed 42 \

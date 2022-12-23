@@ -48,7 +48,7 @@ def _rouge_score(reference, hypothesis, rouger=None):
     return score
 
 
-def eval(args):
+def seq_eval(args):
 
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     device = torch.device("cuda" if torch.cuda.is_available()  else "cpu")
@@ -97,7 +97,7 @@ def eval(args):
             if j == 0:
                 label += decomp["question"]
             else:
-                label += " ; " + decomp["question"]
+                label += " " + decomp["question"]
         prediction = get_decomposition(question)
         # Plain Text Process
         prediction = prediction.replace("<s>", "").replace("</s>", "").replace("<pad>", "")
@@ -134,12 +134,120 @@ def eval(args):
     return bleu, meteor, rouge, metrics
 
 
+def multi_eval(args):
+    
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    device = torch.device("cuda" if torch.cuda.is_available()  else "cpu")
+
+    # tokenizer and model
+    if args.model_type == "t5":
+        tokenizer = T5Tokenizer.from_pretrained(args.tokenizer_name)
+        model = T5ForConditionalGeneration.from_pretrained(args.model_name_or_path)
+    elif args.model_type == "bart":
+        tokenizer = BartTokenizer.from_pretrained(args.tokenizer_name)
+        model = BartForConditionalGeneration.from_pretrained(args.model_name_or_path)
+    model.to(device)
+
+    # generate simple questions
+    def get_decomposition(question):
+        if args.model_type == "t5":
+            input_text = "Paraphrase: " + question
+        else:
+            input_text = question
+        features = tokenizer([input_text], return_tensors='pt').to(device)
+        output = model.generate(input_ids=features['input_ids'], 
+                attention_mask=features['attention_mask'],
+                max_length=args.max_tgt_len)
+        return tokenizer.decode(output[0])
+
+    with open(args.data_dir) as f:
+        dataset = json.load(f)
+    
+    # Pre-process metrics
+    smooth = SmoothingFunction()
+    rouger = Rouge()
+
+    # calculate metrics
+    bleu, meteor, rouge = 0.0, 0.0, 0.0
+    # 2,3,4-hop metrics
+    metrics = [[0.0 for _ in range(3)] for _ in range(3)]
+    counts = [0 for _ in range(3)]
+    for i, data in enumerate(dataset):
+        # 2,3,4-hop counts
+        hop = len(data["question_decomposition"])
+        counts[hop - 2] += 1
+        # 2,3,4-hop counts END
+        question = data["question"]
+        total_prediction = ""
+        total_label = ""
+        for j, decomp in enumerate(data["question_decomposition"]):
+            if j > 0:
+                question += " ; " + label + " " + data["question_decomposition"][j - 1]["answer"]
+            label = decomp["question"]
+            pos = -1
+            pos = label.find("#", pos + 1)
+            while pos != -1:
+                num = int(label[pos + 1])
+                if num != 9:
+                    label = label.replace(label[pos:pos+2], data["question_decomposition"][num - 1]["answer"])
+                pos = label.find("#", pos + 1)
+            prediction = get_decomposition(question)
+            # Plain Text Process
+            prediction = prediction.replace("<s>", "").replace("</s>", "").replace("<pad>", "")
+            if j == 0:
+                total_prediction += prediction
+                total_label += label
+            else:
+                total_prediction += " " + prediction
+                total_label += " " + label
+        _bleu = _bleu_score(total_label, total_prediction, smooth=smooth)
+        _meteor = _meteor_score(total_label, total_prediction)
+        _rouge = _rouge_score(total_label, total_prediction, rouger=rouger)
+        bleu += _bleu
+        meteor += _meteor
+        rouge += _rouge
+        # 2,3,4-hop metrics
+        metrics[hop - 2][0] += _bleu
+        metrics[hop - 2][1] += _meteor
+        metrics[hop - 2][2] += _rouge
+        # 2,3,4-hop metrics END
+        # # Log
+        # logger.info("***** Case No.%d *****", (i + 1))
+        # logger.info("BLEU Score: %f", bleu)
+        # logger.info("METEOR Score: %f", meteor)
+        # logger.info("ROUGE Score: %f", rouge)
+        # Print
+        print("***** Case No.%d *****" % (i + 1))
+        print("Question: %s" % question)
+        print("Gold: %s" % total_label)
+        print("Prediction: %s" % total_prediction)
+        print("BLEU Score: %f" % _bleu)
+        print("METEOR Score: %f" % _meteor)
+        print("ROUGE Score: %f" % _rouge)
+
+    bleu = bleu / len(dataset)
+    meteor = meteor / len(dataset)
+    rouge = rouge / len(dataset)
+
+    for i in range(3):
+        for j in range(3):
+            metrics[i][j] /= counts[i]
+
+    return bleu, meteor, rouge, metrics
+
+
 def main():
     parser = argparse.ArgumentParser()
 
     ## Required parameters
     parser.add_argument("--data_dir", default=None, type=str, required=True,
                         help="The input data dir.")
+    # parser.add_argument("--source_path", default=None, type=str, required=True,
+    #                     help="The source path.")
+    # parser.add_argument("--target_path", default=None, type=str, required=True,
+    #                     help="The target path.")
+    parser.add_argument("--switch", default=None, type=str, required=True,
+                        help="multi or seq2")
 
     ## Other parameters
     parser.add_argument("--model_type", default="bert", type=str,
@@ -156,8 +264,13 @@ def main():
                         help="random seed for initialization")
     
     args = parser.parse_args()
-    result = eval(args)
+    assert args.switch in ["multi", "seq2"]
+    if args.switch == "seq2":
+        result = seq_eval(args)
+    elif args.switch == "multi":
+        result = multi_eval(args)
     
+    # bleu, meteor, rouge, metrics = result
     bleu, meteor, rouge, metrics = result
 
     # logger.info("***** Final Result *****")

@@ -24,7 +24,7 @@ def seq2seq(src_path):
                 target += sub_question
             else:
                 # target += " @@SEP@@ " + sub_question
-                target += " </s> " + sub_question
+                target += " ; " + sub_question
         targets.append(target)
     
     assert len(sources) == len(targets)

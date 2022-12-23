@@ -246,6 +246,100 @@ def Solution6():
         print(decomp)
 
 
+# Batch Decomposition 2-4 hop
+def Solution7():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # tokenizer and model
+    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large")
+    model = BartForConditionalGeneration.from_pretrained("/home/mxdong/Model/MultiStep/MuSiQue/Bart-Large")
+    model.to(torch_device)
+
+    def get_decomposition(question):
+        # input_text = "paraphrase: %s </s>" % question
+        input_text = question
+        features = tokenizer([input_text], return_tensors='pt').to(torch_device)
+
+        output = model.generate(input_ids=features['input_ids'], 
+                attention_mask=features['attention_mask'],
+                max_length=100)
+
+        return tokenizer.decode(output[0])
+
+    questions = [
+        "Who is the spouse of the Green performer?",
+        "Who is the spouse of the Green performer? </s> Green >> performer Steve Hillage",
+        "Who founded the company that distributed the film UHF?",
+        "Who founded the company that distributed the film UHF? </s> UHF >> distributed by Orion Pictures",
+        "How were the people that the Somali Muslim Ajuran Empire made coins to proclaim independence from, expelled from the country where Mohinga is eaten?",
+        "How were the people that the Somali Muslim Ajuran Empire made coins to proclaim independence from, expelled from the country where Mohinga is eaten? </s> New coins were a proclamation of independence by the Somali Muslim Ajuran Empire from whom? the Portuguese",
+        "How were the people that the Somali Muslim Ajuran Empire made coins to proclaim independence from, expelled from the country where Mohinga is eaten? </s> New coins were a proclamation of independence by the Somali Muslim Ajuran Empire from whom? the Portuguese </s> Which was the country for Mohinga? Myanmar",
+    ]
+    # answers = [
+    #     "Green >> performer",
+    #     "Steve Hillage >> spouse </s> </s>",
+    #     "UHF >> distributed by",
+    #     "Orion Pictures >> founded by </s> </s>",
+    #     "New coins were a proclamation of independence by the Somali Muslim Ajuran Empire from whom?",
+    #     "Which was the country for Mohinga?",
+    #     "How were the the Portuguese expelled from Myanmar ? </s> </s>"
+    # ]
+
+    for question in questions:
+        decomp = get_decomposition(question)
+        print("[Complex]", end=" ")
+        print(question)
+        print("[Simples]", end=" ")
+        print(decomp)
+
+
+# Batch Decomposition 2-4 hop
+def Solution8():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # tokenizer and model
+    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large")
+    model = BartForConditionalGeneration.from_pretrained("/home/mxdong/Model/Seq2seq/MuSiQue/Bart-Large-eos-64")
+    model.to(torch_device)
+
+    def get_decomposition(question):
+        # input_text = "paraphrase: %s </s>" % question
+        input_text = question
+        features = tokenizer([input_text], return_tensors='pt').to(torch_device)
+
+        output = model.generate(input_ids=features['input_ids'], 
+                attention_mask=features['attention_mask'],
+                max_length=100)
+
+        return tokenizer.decode(output[0])
+
+    questions = [
+        "Who founded the company that distributed the film UHF?",
+        "What is the birthplace of the man who does the voice of Stan on the series that includes the episode The Hobbit?",
+        "When did the party holding the majority in the House of Representatives take control of the determiner of rules of the House and Senate?",
+        "What were the Genesis's advantages over the platform with a three letter abbreviation, that had a video game named after the league in charge of the Super Bowl halftime show?",
+        "The military group of which the Air Defense Artillery is a branch was unprepared for the invasion of the territory the Nazis occupied. The country of this group was the only communist country to have an embassy where?",
+        "Despite being located in East Belgium, the Carnival of the birth place of Guido Maus harks purely to an area. What was the language having the same name as this area of the era with Fastrada's spouse's name later known as?",
+    ]
+    # answers = [
+    #     "UHF >> distributed by; #1 >> founded by",
+    #     "The Hobbit >> part of the series; who does the voice of stan on #1; #2 >> place of birth",
+    #     "who determines the rules of the us house and us senate; who hold the majority in the house of representatives; when did #2 take control of the #1",
+    #     "who is in charge of the super bowl halftime show; #1 >> platform; What is the abbreviation of #2 ?; What were the Genesis's advantages over the #3 ?",
+    #     "What territory did the Nazi occupy?; The Air Defense Artillery is a branch of what?; What #2 was unprepared for the invasion of #1 ?; #3 was the only communist country to have an embassy where?",
+    #     "Guido Maus >> place of birth; Despite being located in East Belgium, #1 's Carnival harks purely to what area?; What is Fastrada's spouse's name?; What was the #2 of #3 's era later known as?"
+    # ]
+
+    for question in questions:
+        decomp = get_decomposition(question)
+        print("[Complex]", end=" ")
+        print(question)
+        print("[Simples]", end=" ")
+        print(decomp)
+
+
 if __name__ == "__main__":
-    Solution6()
+    Solution7()
 
