@@ -1,0 +1,4 @@
+classifier/logs
+classifier/scripts/runs
+generator/logs
+evaluate/logs
