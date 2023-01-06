@@ -340,6 +340,91 @@ def Solution8():
         print(decomp)
 
 
+def Solution9():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # tokenizer and model
+    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large")
+    model = BartForConditionalGeneration.from_pretrained("/home/mxdong/Model/Decomposition/MuSiQue/Mix")
+    model.to(torch_device)
+
+    def get_decomposition(question):
+        # input_text = "paraphrase: %s </s>" % question
+        input_text = question
+        features = tokenizer([input_text], return_tensors='pt').to(torch_device)
+
+        output = model.generate(input_ids=features['input_ids'], 
+                attention_mask=features['attention_mask'],
+                max_length=100)
+
+        return tokenizer.decode(output[0])
+
+    questions = [
+        "Who founded the company that distributed the film UHF?",
+        "What is the birthplace of the man who does the voice of Stan on the series that includes the episode The Hobbit?",
+        "When did the party holding the majority in the House of Representatives take control of the determiner of rules of the House and Senate?",
+        "Who is the spouse of the Green performer? ; Green >> performer Steve Hillage",
+    ]
+    # answers = [
+    #     "UHF >> distributed by; #1 >> founded by",
+    #     "The Hobbit >> part of the series; who does the voice of stan on #1; #2 >> place of birth",
+    #     "who determines the rules of the us house and us senate; who hold the majority in the house of representatives; when did #2 take control of the #1",
+    #     "who is in charge of the super bowl halftime show; #1 >> platform; What is the abbreviation of #2 ?; What were the Genesis's advantages over the #3 ?",
+    #     "What territory did the Nazi occupy?; The Air Defense Artillery is a branch of what?; What #2 was unprepared for the invasion of #1 ?; #3 was the only communist country to have an embassy where?",
+    #     "Guido Maus >> place of birth; Despite being located in East Belgium, #1 's Carnival harks purely to what area?; What is Fastrada's spouse's name?; What was the #2 of #3 's era later known as?"
+    # ]
+
+    for question in questions:
+        decomp = get_decomposition(question)
+        print("[Complex]", end=" ")
+        print(question)
+        print("[Simples]", end=" ")
+        print(decomp)
+    
+
+def Solution10():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # tokenizer and model
+    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large")
+    model = BartForConditionalGeneration.from_pretrained("/home/mxdong/Model/Decomposition/MuSiQue/Mix")
+    model.to(torch_device)
+
+    def get_decomposition(question):
+        # input_text = "paraphrase: %s </s>" % question
+        input_text = question
+        features = tokenizer([input_text], return_tensors='pt').to(torch_device)
+
+        output = model.generate(input_ids=features['input_ids'], 
+                attention_mask=features['attention_mask'],
+                max_length=100)
+
+        return tokenizer.decode(output[0])
+
+    questions = [
+        "Who founded the company that distributed the film UHF?",
+        "hen was the last time Duane Courtney's team beat the winner of the 1894-95 FA Cup?",
+        "In what region of Phu Luong's country is John Phan's birthplace located?",
+    ]
+    # answers = [
+    #     "UHF >> distributed by; #1 >> founded by",
+    #     "The Hobbit >> part of the series; who does the voice of stan on #1; #2 >> place of birth",
+    #     "who determines the rules of the us house and us senate; who hold the majority in the house of representatives; when did #2 take control of the #1",
+    #     "who is in charge of the super bowl halftime show; #1 >> platform; What is the abbreviation of #2 ?; What were the Genesis's advantages over the #3 ?",
+    #     "What territory did the Nazi occupy?; The Air Defense Artillery is a branch of what?; What #2 was unprepared for the invasion of #1 ?; #3 was the only communist country to have an embassy where?",
+    #     "Guido Maus >> place of birth; Despite being located in East Belgium, #1 's Carnival harks purely to what area?; What is Fastrada's spouse's name?; What was the #2 of #3 's era later known as?"
+    # ]
+
+    for question in questions:
+        decomp = get_decomposition(question)
+        print("[Complex]", end=" ")
+        print(question)
+        print("[Simples]", end=" ")
+        print(decomp)
+
+
 if __name__ == "__main__":
-    Solution7()
+    Solution10()
 
